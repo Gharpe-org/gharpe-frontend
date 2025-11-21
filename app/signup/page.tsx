@@ -1,7 +1,15 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+
 export default function SignupPage() {
-    return (
-        <div className="flex min-h-screen items-center justify-center">
-            <h1 className="text-2xl font-bold">Sign Up</h1>
-        </div>
-    )
+    const router = useRouter()
+
+    useEffect(() => {
+        // Redirect to login page since all auth methods are handled there
+        router.push("/login")
+    }, [router])
+
+    return null
 }

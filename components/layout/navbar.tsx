@@ -2,12 +2,16 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Menu, Search, ShoppingBag, User } from "lucide-react"
+import { Menu, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/components/ui/button" // Re-using cn from button for simplicity or import from utils if moved
+import { cn } from "@/components/ui/button"
+import { CartSheet } from "@/components/cart/cart-sheet"
+import { useAuth } from "@/context/auth-context"
+import { ModeToggle } from "@/components/mode-toggle"
 
 export function Navbar() {
     const [isScrolled, setIsScrolled] = React.useState(false)
+    const { isAuthenticated, user, logout } = useAuth()
 
     React.useEffect(() => {
         const handleScroll = () => {
@@ -39,12 +43,14 @@ export function Navbar() {
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-8">
-                    <Link
-                        href="/User"
-                        className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                    >
-                        Services
-                    </Link>
+                    {isAuthenticated && user && (
+                        <Link
+                            href={`/${user.id}`}
+                            className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                        >
+                            Services
+                        </Link>
+                    )}
                     <Link
                         href="#"
                         className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
@@ -80,9 +86,22 @@ export function Navbar() {
                         </svg>
                     </div>
 
-                    <Button variant="default" className="font-semibold">
-                        Sign In
-                    </Button>
+                    {/* Cart Sheet - Only show if authenticated */}
+                    {isAuthenticated && <CartSheet />}
+
+                    {isAuthenticated ? (
+                        <Button variant="default" className="font-semibold" onClick={() => logout()}>
+                            Sign Out
+                        </Button>
+                    ) : (
+                        <Link href="/login">
+                            <Button variant="default" className="font-semibold">
+                                Sign In
+                            </Button>
+                        </Link>
+                    )}
+
+                    <ModeToggle />
 
                     <Button variant="ghost" size="icon" className="md:hidden text-foreground">
                         <Menu className="h-6 w-6" />

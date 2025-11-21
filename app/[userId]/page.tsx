@@ -2,19 +2,25 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Utensils, ShoppingCart, Shirt, AlertCircle, User, Wallet, HelpCircle, FileText } from "lucide-react"
 
-export default function UserDashboard() {
+export default async function UserDashboard({
+    params,
+}: {
+    params: Promise<{ userId: string }>
+}) {
+    const { userId } = await params
+
     const services = [
-        { name: "Food Delivery", href: "/User/food", icon: Utensils, color: "text-orange-500" },
-        { name: "Grocery", href: "/User/grocery", icon: ShoppingCart, color: "text-green-500" },
-        { name: "Laundry", href: "/User/laundry", icon: Shirt, color: "text-blue-500" },
-        { name: "Emergency", href: "/User/emergency", icon: AlertCircle, color: "text-red-500" },
+        { name: "Food Delivery", href: `/${userId}/food`, icon: Utensils, color: "text-orange-500" },
+        { name: "Grocery", href: `/${userId}/grocery`, icon: ShoppingCart, color: "text-green-500" },
+        { name: "Laundry", href: `/${userId}/laundry`, icon: Shirt, color: "text-blue-500" },
+        { name: "Emergency", href: `/${userId}/emergency`, icon: AlertCircle, color: "text-red-500" },
     ]
 
     const userFeatures = [
-        { name: "Profile", href: "/User/profile", icon: User },
-        { name: "Orders", href: "/User/orders", icon: FileText },
-        { name: "Wallet", href: "/User/wallet", icon: Wallet },
-        { name: "Support", href: "/User/support", icon: HelpCircle },
+        { name: "Profile", href: `/${userId}/profile`, icon: User },
+        { name: "Orders", href: `/${userId}/orders`, icon: FileText },
+        { name: "Wallet", href: `/${userId}/wallet`, icon: Wallet },
+        { name: "Support", href: `/${userId}/support`, icon: HelpCircle },
     ]
 
     return (
