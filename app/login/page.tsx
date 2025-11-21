@@ -39,10 +39,27 @@ export default function LoginPage() {
     setIsGoogleLoading(true)
     setError(null)
     try {
+      console.log("🔵 Starting Google login...")
       await loginWithGoogle()
+      console.log("✅ Google login successful!")
     } catch (error: any) {
-      console.error("Login failed", error)
-      setError(error.message || "Google login failed. Please try again.")
+      console.error("❌ Google login failed:", error)
+      console.error("Error code:", error.code)
+      console.error("Error message:", error.message)
+
+      // Provide user-friendly error messages based on error code
+      let userMessage = "Google login failed. Please try again."
+      if (error.code === 'auth/popup-closed-by-user') {
+        userMessage = "Sign-in popup was closed. Please try again."
+      } else if (error.code === 'auth/unauthorized-domain') {
+        userMessage = "This domain is not authorized. Please contact support."
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        userMessage = "Only one popup is allowed at a time."
+      } else if (error.message) {
+        userMessage = error.message
+      }
+
+      setError(userMessage)
     } finally {
       setIsGoogleLoading(false)
     }
