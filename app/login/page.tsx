@@ -20,7 +20,6 @@ export default function LoginPage() {
   const [otpCode, setOtpCode] = useState("")
   const [showOtpDialog, setShowOtpDialog] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
   useEffect(() => {
     if (isAuthenticated && user) {
       router.push(`/${user.id}`)

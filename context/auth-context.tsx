@@ -43,118 +43,120 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [phoneNumberForOTP, setPhoneNumberForOTP] = useState<string | null>(null)
     const router = useRouter()
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            if (firebaseUser) {
-                try {
-                    // Get ID token
-                    const token = await firebaseUser.getIdToken()
+    const verifyUser = async (firebaseUser: FirebaseUser) => {
+        try {
+            console.log("🔐 Verifying user:", firebaseUser.email);
+            const token = await firebaseUser.getIdToken(true);
 
-                    // Verify with backend
-                    const response = await fetch('http://localhost:3100/auth/verifyToken', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ token }),
-                    })
+            const response = await fetch("http://localhost:3100/auth/verifyToken", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token }),
+            });
 
-                    if (!response.ok) {
-                        console.error("Backend returned error status:", response.status)
-                        setUser(null)
-                        return
-                    }
+            const data = await response.json();
 
-                    const contentType = response.headers.get('content-type')
-                    if (!contentType || !contentType.includes('application/json')) {
-                        console.error("Backend didn't return JSON:", contentType)
-                        setUser(null)
-                        return
-                    }
-
-                    const data = await response.json()
-
-                    if (data.success) {
-                        setUser(data.user)
-                    } else {
-                        console.error("Backend verification failed:", data.message)
-                        setUser(null)
-                    }
-                } catch (error) {
-                    console.error("Error verifying token:", error)
-                    setUser(null)
-                }
+            if (data?.success) {
+                console.log("✅ Backend verification successful:", data.user.email);
+                setUser(data.user);
             } else {
-                setUser(null)
+                console.error("❌ Backend verification failed:", data?.message);
+                setUser(null);
             }
-            setIsLoading(false)
-        })
+        } catch (error) {
+            console.error("❌ Token verification error:", error);
+            setUser(null);
+        }
+    };
 
-        return () => unsubscribe()
-    }, [])
+    useEffect(() => {
+        console.log("🔌 AuthProvider mounted");
+        let firstLoad = true;
+
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            console.log("🔄 Auth state changed:", firebaseUser ? firebaseUser.email : "No user");
+
+            if (firstLoad) {
+                firstLoad = false;
+                if (!firebaseUser) {
+                    setIsLoading(false);
+                    return;
+                }
+            }
+
+            if (!firebaseUser) {
+                setUser(null);
+                setIsLoading(false);
+                return;
+            }
+
+            await verifyUser(firebaseUser);
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const loginWithGoogle = async () => {
         try {
-            console.log("Starting Google login...")
-            const result = await signInWithPopup(auth, googleProvider)
-            console.log("Google login successful:", result.user.email)
-            // Navigation is handled by the useEffect or the component calling this
+            console.log("🔵 Starting Google login...");
+            const result = await signInWithPopup(auth, googleProvider);
+            console.log("✅ Google login successful:", result.user.email);
+
+            // Manually verify immediately to ensure UI updates
+            await verifyUser(result.user);
         } catch (error: any) {
-            console.error("Google login failed:", error)
-            console.error("Error code:", error.code)
-            console.error("Error message:", error.message)
-            throw error
+            console.error("❌ Google login failed:", error);
+            throw error;
         }
     }
 
     const loginWithApple = async () => {
         try {
-            console.log("Starting Apple login...")
-            const result = await signInWithPopup(auth, appleProvider)
-            console.log("Apple login successful:", result.user.email)
-            // Navigation is handled by the useEffect
+            console.log("🍎 Starting Apple login...");
+            const result = await signInWithPopup(auth, appleProvider);
+            console.log("✅ Apple login successful:", result.user.email);
+
+            // Manually verify immediately
+            await verifyUser(result.user);
         } catch (error: any) {
-            console.error("Apple login failed:", error)
-            console.error("Error code:", error.code)
-            console.error("Error message:", error.message)
-            throw error
+            console.error("❌ Apple login failed:", error);
+            throw error;
         }
     }
 
     const loginWithPhone = async (phoneNumber: string) => {
         try {
-            console.log("Starting phone login for:", phoneNumber)
+            console.log("📱 Starting phone login for:", phoneNumber);
 
             // Initialize RecaptchaVerifier if not already initialized
             if (!recaptchaVerifier) {
                 const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
                     size: 'invisible',
                     callback: () => {
-                        console.log("reCAPTCHA solved")
+                        console.log("reCAPTCHA solved");
                     }
-                })
-                setRecaptchaVerifier(verifier)
+                });
+                setRecaptchaVerifier(verifier);
 
-                const confirmation = await signInWithPhoneNumber(auth, phoneNumber, verifier)
-                setConfirmationResult(confirmation)
-                setPhoneNumberForOTP(phoneNumber)
-                console.log("OTP sent to:", phoneNumber)
+                const confirmation = await signInWithPhoneNumber(auth, phoneNumber, verifier);
+                setConfirmationResult(confirmation);
+                setPhoneNumberForOTP(phoneNumber);
+                console.log("OTP sent to:", phoneNumber);
             } else {
-                const confirmation = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier)
-                setConfirmationResult(confirmation)
-                setPhoneNumberForOTP(phoneNumber)
-                console.log("OTP sent to:", phoneNumber)
+                const confirmation = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+                setConfirmationResult(confirmation);
+                setPhoneNumberForOTP(phoneNumber);
+                console.log("OTP sent to:", phoneNumber);
             }
         } catch (error: any) {
-            console.error("Phone login failed:", error)
-            console.error("Error code:", error.code)
-            console.error("Error message:", error.message)
+            console.error("Phone login failed:", error);
             // Reset recaptcha on error
             if (recaptchaVerifier) {
-                recaptchaVerifier.clear()
-                setRecaptchaVerifier(null)
+                recaptchaVerifier.clear();
+                setRecaptchaVerifier(null);
             }
-            throw error
+            throw error;
         }
     }
 

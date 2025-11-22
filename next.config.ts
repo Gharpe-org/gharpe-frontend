@@ -8,11 +8,11 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin', // Changed from 'unsafe-none' to 'same-origin'
+            value: 'same-origin-allow-popups',
           },
           {
             key: 'Cross-Origin-Embedder-Policy',
-            value: 'require-corp', // Changed from 'unsafe-none' to 'require-corp'
+            value: 'unsafe-none',
           },
         ],
       },
