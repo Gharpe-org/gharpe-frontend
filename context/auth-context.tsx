@@ -47,8 +47,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             console.log("🔐 Verifying user:", firebaseUser.email);
             const token = await firebaseUser.getIdToken(true);
+            // https://gharpebackend-production.up.railway.app/auth/verifyToken
 
-            const response = await fetch("http://localhost:3100/auth/verifyToken", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verifyToken`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ token }),
