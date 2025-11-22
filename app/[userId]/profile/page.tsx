@@ -18,7 +18,7 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     await auth.signOut();
-    router.push("/login");
+    router.push("/");
   };
 
   if (!user) return <div className="p-6">Loading...</div>;
