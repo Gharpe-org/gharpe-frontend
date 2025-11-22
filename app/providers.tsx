@@ -2,6 +2,7 @@
 
 import { ThemeProvider } from "next-themes"
 import { AuthProvider } from "@/context/auth-context"
+import { CartProvider } from "@/context/cart-context"
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
@@ -11,7 +12,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
             enableSystem
             disableTransitionOnChange
         >
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+                <CartProvider>
+                    {children}
+                </CartProvider>
+            </AuthProvider>
         </ThemeProvider>
     )
 }
